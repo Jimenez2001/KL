@@ -8,6 +8,13 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 
 <style>
+    /* FIX iPhone: evitar fondo blanco */
+    html, body {
+        background-color: #000 !important;
+        color-scheme: only dark;
+        -webkit-appearance: none;
+    }
+
     :root {
         --bg: #000;
         --card: #0f0f0f;
@@ -16,7 +23,12 @@
         --accent: #ffe817;
     }
 
-    * { margin:0; padding:0; box-sizing:border-box; }
+    * { 
+        margin:0; 
+        padding:0; 
+        box-sizing:border-box; 
+        -webkit-transform-style: preserve-3d;
+    }
 
     body {
         background: radial-gradient(circle, #1b1b1b 0%, #000 70%);
@@ -31,34 +43,20 @@
         position:relative;
     }
 
-    /* 🌌 FONDO DE ESTRELLAS (parpadeo + movimiento + estrellas grandes) */
+    /* 🌌 Fondo de estrellas compatible con iPhone */
     .stars {
         position: fixed;
         top: 0;
         left: 0;
-        width: 100%;
-        height: 100%;
+        width: 100vw;
+        height: 100vh;
         overflow: hidden;
         z-index: -1;
         pointer-events: none;
+        background:#000 !important;
     }
 
-    /* Capa 1 — Estrellas pequeñas */
-    .stars::before {
-        content: "";
-        position: absolute;
-        width: 200%;
-        height: 200%;
-        top: -50%;
-        left: -50%;
-        background: radial-gradient(white 1px, transparent 1px);
-        background-size: 3px 3px;
-        opacity: 0.25;
-        animation: drift 60s linear infinite, twinkle 3s ease-in-out infinite;
-        filter: blur(0.6px);
-    }
-
-    /* Capa 2 — Estrellas doradas */
+    .stars::before,
     .stars::after {
         content: "";
         position: absolute;
@@ -66,11 +64,21 @@
         height: 200%;
         top: -50%;
         left: -50%;
+        opacity: 0.12 !important; /* FIX iPhone que lo veía blanco */
+    }
+
+    .stars::before {
+        background: radial-gradient(white 1px, transparent 1px);
+        background-size: 3px 3px;
+        animation: drift 60s linear infinite, twinkle 3s ease-in-out infinite;
+        filter: blur(0.8px);
+    }
+
+    .stars::after {
         background: radial-gradient(#ffe817 1px, transparent 1px);
         background-size: 4px 4px;
-        opacity: 0.45;
         animation: drift 120s linear infinite, twinkle 5s ease-in-out infinite;
-        filter: blur(1px);
+        filter: blur(1.2px);
     }
 
     @keyframes drift {
@@ -79,20 +87,20 @@
     }
 
     @keyframes twinkle {
-        0%   { opacity: 0.15; }
-        50%  { opacity: 0.45; }
-        100% { opacity: 0.15; }
+        0%   { opacity: 0.1; }
+        50%  { opacity: 0.35; }
+        100% { opacity: 0.1; }
     }
 
-    /* 🌠 ESTRELLA FUGAZ */
+    /* 🌠 Estrella fugaz */
     .shooting-star {
         position: fixed;
         top: -10px;
         left: -10px;
-        width: 2px;
-        height: 2px;
+        width: 3px;
+        height: 3px;
         background: white;
-        box-shadow: 0 0 10px white, 0 0 20px #ffe817;
+        box-shadow: 0 0 12px white, 0 0 20px #ffe817;
         border-radius: 50%;
         opacity: 0;
         transform: rotate(45deg);
@@ -183,9 +191,6 @@
     .front {
         transform: rotateY(180deg);
         background:var(--card);
-        display:flex;
-        justify-content:center;
-        align-items:center;
         border:1px solid rgba(255,255,255,0.1);
         font-size:2rem;
         color: var(--accent);
@@ -227,16 +232,13 @@
         text-transform:uppercase;
         letter-spacing:0.05em;
         font-size:0.85rem;
-        text-decoration:none;
         cursor:pointer;
         transition:.2s;
+        text-decoration:none;
     }
 
     .btn-primary { background:var(--accent); color:#000; }
     .btn-primary:hover { transform:translateY(-2px); }
-
-    .btn-ghost { background:transparent; color:var(--soft); border:1px solid rgba(255,255,255,0.18); }
-    .btn-ghost:hover { background:rgba(255,255,255,0.06); transform:translateY(-2px); }
 </style>
 </head>
 
@@ -247,7 +249,8 @@
 <h1>Juego de Memoria</h1>
 <div class="subtitle">Cada pareja revela un recuerdo, una fecha o algo especial ✨</div>
 
-<audio autoplay loop>
+<!-- 🎵 MÚSICA -->
+<audio id="bgMusic" loop>
     <source src="img/suave.mp3" type="audio/mpeg">
 </audio>
 
@@ -262,157 +265,178 @@
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
 <script>
-    // Íconos del juego
-    const icons = ["⭐","🌙","🌼","🎧","📘","💛"];
-    let cards = [...icons, ...icons];
+/* ----------------------------------------------------------
+   FIX PARA iPHONE: activar música solo si el usuario toca
+---------------------------------------------------------- */
+const audio = document.getElementById("bgMusic");
 
-    // Mezclar cartas
-    for (let i = cards.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [cards[i], cards[j]] = [cards[j], cards[i]];
-    }
+function enableAudio() {
+    audio.volume = 0.5;
+    audio.play().catch(()=>{});
+    document.removeEventListener("touchstart", enableAudio);
+    document.removeEventListener("click", enableAudio);
+}
 
-    const board = document.getElementById("board");
-    let first = null;
-    let lock = false;
-    let matches = 0;
+document.addEventListener("touchstart", enableAudio, { once: true });
+document.addEventListener("click", enableAudio, { once: true });
 
-    // Frases especiales
-    const phrases = [
-        // Esfuerzo, disciplina, estudios
-        "Tú eres una persona muy dedicada; entre trabajo, estudios y pendientes siempre encontraste la manera de seguir avanzando.",
-        "Admiro la forma en que te esfuerzas por cumplir tus metas y no te conformas con lo fácil.",
-        "Te tomas en serio tus estudios, y se nota en cómo te preparas para parciales y proyectos.",
-        "Tu constancia en la U refleja la persona que eres: responsable, dedicada y capaz.",
-        "Tus logros, por pequeños que parezcan, son el resultado de todo el esfuerzo que no siempre se ve.",
-        "Tú eres de las personas que convierten sus estudios en oportunidades.",
-        
-        // Trabajo y crecimiento
-        "Te mereces un trabajo donde te valoren, porque haces mucho más de lo que te toca.",
-        "Tienes una ética de trabajo admirable; incluso en días difíciles das tu mejor versión.",
-        "Ese sueño de tener un mejor puesto no es lejano; tú tienes la capacidad para alcanzarlo.",
-        "Tu capacidad para adaptarte al trabajo es algo que pocas personas tienen.",
-        "Los cambios que quieres para tu vida laboral no son imposibles; vas en la dirección correcta.",
-        
-        // Emprendimiento
-        "Tu marca y tu emprendimiento algún día serán reales; tú no te quedas solo en soñar.",
-        "Tu proyecto personal tiene algo especial: nace de tu disciplina, no del impulso.",
-        "Tienes una visión clara para tu emprendimiento, y eso ya es un paso enorme.",
-        "Me gusta cómo hablas de tus ideas; con calma, pero con determinación.",
-        "Lo que quieres construir como emprendedora encaja contigo y con tu manera de ser.",
-        
-        // Sueños y metas
-        "Tus sueños no son solo metas; son reflejo de tu carácter fuerte y constante.",
-        "Tú eres más capaz de lo que imaginas; solo necesitas seguir como vas.",
-        "Tus pasos, aunque sean pequeños, siempre te llevan hacia adelante.",
-        "Ojalá nunca dudes del futuro tan bueno que puedes construir para ti.",
-        "Tus metas grandes tienen sentido porque tú tienes la fuerza para lograrlas.",
-        
-        // Forma de ser
-        "Tienes una manera tranquila de hablar que transmite paz, incluso cuando el día ha sido complicado.",
-        "Tu sinceridad hace que tus palabras se sientan reales.",
-        "Eres alguien que aporta, incluso sin proponérselo.",
-        "Me gusta cómo encuentras algo bueno en los días complicados.",
-        "Se nota que valoras mucho a tu familia y a las personas importantes para ti.",
-        
-        // Recuerdos y conexión
-        "Me gustaba cuando contabas tu día en el trabajo o en la U; hacías todo sonar más ligero.",
-        "Tus gustos, tu música y tus conversaciones hicieron varios días más agradables.",
-        "Aprecio la confianza con la que me compartiste tus metas y parte de tu vida.",
-        "Fue bonito coincidir contigo, aunque solo haya sido por un tramo pequeño.",
-        "Me quedo con lo bueno, porque lo bueno contigo fue genuino.",
-        "Recordarte así, enfocada en tus metas y en tu futuro, es algo que siempre voy a valorar."
-    ];
+/* ----------------------------------------------------------
+   Vibración compatible con iPhone
+---------------------------------------------------------- */
+function vibrate() {
+    try {
+        window.navigator.vibrate = window.navigator.vibrate || window.navigator.webkitVibrate;
+        if (navigator.vibrate) navigator.vibrate([50]);
+    } catch(e){}
+}
 
-    const msg = document.getElementById("messageBox");
+/* ----------------------------------------------------------
+   Íconos del juego
+---------------------------------------------------------- */
+const icons = ["⭐","🌙","🌼","🎧","📘","💛"];
+let cards = [...icons, ...icons];
 
-    function showPhrase() {
-        msg.innerHTML = phrases[Math.floor(Math.random() * phrases.length)];
-        msg.classList.add("show");
-        setTimeout(() => msg.classList.remove("show"), 4500);
-    }
+for (let i = cards.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [cards[i], cards[j]] = [cards[j], cards[i]];
+}
 
-    function vibrate() {
-        if (navigator.vibrate) navigator.vibrate(80);
-    }
+const board = document.getElementById("board");
+let first = null;
+let lock = false;
+let matches = 0;
 
-    function celebrate() {
-        confetti({
-            particleCount: 200,
-            spread: 90,
-            origin: { y: 0.6 },
-            colors: ["#ffe817", "#ffffff"]
-        });
-    }
+/* ----------------------------------------------------------
+   Frases especiales (sin cambios)
+---------------------------------------------------------- */
+const phrases = [
+    "Tú eres una persona muy dedicada; entre trabajo, estudios y pendientes siempre encontraste la manera de seguir avanzando.",
+    "Admiro la forma en que te esfuerzas por cumplir tus metas y no te conformas con lo fácil.",
+    "Te tomas en serio tus estudios, y se nota en cómo te preparas para parciales y proyectos.",
+    "Tu constancia en la U refleja la persona que eres: responsable, dedicada y capaz.",
+    "Tus logros, por pequeños que parezcan, son el resultado de todo el esfuerzo que no siempre se ve.",
+    "Tú eres de las personas que convierten sus estudios en oportunidades.",
 
-    // ⭐ Crear cartas
-    cards.forEach((icon) => {
-        const card = document.createElement("div");
-        card.className = "card";
+    "Te mereces un trabajo donde te valoren, porque haces mucho más de lo que te toca.",
+    "Tienes una ética de trabajo admirable; incluso en días difíciles das tu mejor versión.",
+    "Ese sueño de tener un mejor puesto no es lejano; tú tienes la capacidad para alcanzarlo.",
+    "Tu capacidad para adaptarte al trabajo es algo que pocas personas tienen.",
+    "Los cambios que quieres para tu vida laboral no son imposibles; vas en la dirección correcta.",
 
-        card.innerHTML = `
-            <div class="card-inner">
-                <div class="back">?</div>
-                <div class="front">${icon}</div>
-            </div>
-        `;
+    "Tu marca y tu emprendimiento algún día serán reales; tú no te quedas solo en soñar.",
+    "Tu proyecto personal tiene algo especial: nace de tu disciplina, no del impulso.",
+    "Tienes una visión clara para tu emprendimiento, y eso ya es un paso enorme.",
+    "Me gusta cómo hablas de tus ideas; con calma, pero con determinación.",
+    "Lo que quieres construir como emprendedora encaja contigo y con tu manera de ser.",
 
-        card.addEventListener("click", () => {
-            if (lock || card.classList.contains("flip")) return;
+    "Tus sueños no son solo metas; son reflejo de tu carácter fuerte y constante.",
+    "Tú eres más capaz de lo que imaginas; solo necesitas seguir como vas.",
+    "Tus pasos, aunque sean pequeños, siempre te llevan hacia adelante.",
+    "Ojalá nunca dudes del futuro tan bueno que puedes construir para ti.",
+    "Tus metas grandes tienen sentido porque tú tienes la fuerza para lograrlas.",
 
-            card.classList.add("flip");
+    "Tienes una manera tranquila de hablar que transmite paz, incluso cuando el día ha sido complicado.",
+    "Tu sinceridad hace que tus palabras se sientan reales.",
+    "Eres alguien que aporta, incluso sin proponérselo.",
+    "Me gusta cómo encuentras algo bueno en los días complicados.",
+    "Se nota que valoras mucho a tu familia y a las personas importantes para ti.",
 
-            if (!first) {
-                first = card;
-            } else {
-                lock = true;
+    "Me gustaba cuando contabas tu día en el trabajo o en la U; hacías todo sonar más ligero.",
+    "Tus gustos, tu música y tus conversaciones hicieron varios días más agradables.",
+    "Aprecio la confianza con la que me compartiste tus metas y parte de tu vida.",
+    "Fue bonito coincidir contigo, aunque solo haya sido por un tramo pequeño.",
+    "Me quedo con lo bueno, porque lo bueno contigo fue genuino.",
+    "Recordarte así, enfocada en tus metas y en tu futuro, es algo que siempre voy a valorar."
+];
 
-                const match =
-                    first.querySelector(".front").innerHTML ===
-                    card.querySelector(".front").innerHTML;
+const msg = document.getElementById("messageBox");
 
-                if (match) {
-                    showPhrase();
-                    vibrate();
-                    matches++;
+function showPhrase() {
+    msg.innerHTML = phrases[Math.floor(Math.random() * phrases.length)];
+    msg.classList.add("show");
+    setTimeout(() => msg.classList.remove("show"), 4500);
+}
 
+/* ----------------------------------------------------------
+   Crear las cartas
+---------------------------------------------------------- */
+cards.forEach(icon => {
+    const card = document.createElement("div");
+    card.className = "card";
+
+    card.innerHTML = `
+        <div class="card-inner">
+            <div class="back">?</div>
+            <div class="front">${icon}</div>
+        </div>
+    `;
+
+    card.addEventListener("click", () => {
+        vibrate(); // FIX iPhone: vibración debe venir del toque
+
+        if (lock || card.classList.contains("flip")) return;
+
+        card.classList.add("flip");
+
+        if (!first) {
+            first = card;
+        } else {
+            lock = true;
+
+            const match =
+                first.querySelector(".front").innerHTML ===
+                card.querySelector(".front").innerHTML;
+
+            if (match) {
+                showPhrase();
+                matches++;
+
+                setTimeout(() => {
+                    first.style.opacity = "0.35";
+                    card.style.opacity = "0.35";
+                    first = null;
+                    lock = false;
+                }, 600);
+
+                if (matches === icons.length) {
                     setTimeout(() => {
-                        first.style.opacity = "0.35";
-                        card.style.opacity = "0.35";
-                        first = null;
-                        lock = false;
-                    }, 600);
-
-                    if (matches === icons.length) {
-                        setTimeout(() => celebrate(), 900);
-                    }
-
-                } else {
-                    setTimeout(() => {
-                        first.classList.remove("flip");
-                        card.classList.remove("flip");
-                        first = null;
-                        lock = false;
+                        confetti({
+                            particleCount: 200,
+                            spread: 90,
+                            origin: { y: 0.6 },
+                            colors: ["#ffe817", "#ffffff"]
+                        });
                     }, 900);
                 }
-            }
-        });
 
-        board.appendChild(card);
+            } else {
+                setTimeout(() => {
+                    first.classList.remove("flip");
+                    card.classList.remove("flip");
+                    first = null;
+                    lock = false;
+                }, 900);
+            }
+        }
     });
 
-    // 🌠 Crear estrella fugaz automáticamente cada 8–12s
-    function createShootingStar() {
-        const star = document.createElement("div");
-        star.className = "shooting-star";
-        document.body.appendChild(star);
+    board.appendChild(card);
+});
 
-        setTimeout(() => star.remove(), 2000);
-    }
+/* ----------------------------------------------------------
+   Estrella fugaz
+---------------------------------------------------------- */
+function createShootingStar() {
+    const star = document.createElement("div");
+    star.className = "shooting-star";
+    document.body.appendChild(star);
+    setTimeout(() => star.remove(), 2000);
+}
 
-    setInterval(() => {
-        createShootingStar();
-    }, Math.random() * 4000 + 8000); // entre 8s y 12s
+setInterval(() => {
+    createShootingStar();
+}, Math.random() * 4000 + 8000);
+
 </script>
 
 </body>

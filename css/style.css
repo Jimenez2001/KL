@@ -103,4 +103,42 @@ body{
     box-shadow: 0 0 10px yellow, 0 0 20px yellow, 0 0 30px yellow; /* Efecto de resplandor amarillo */
   }
   
-  
+  /* Contenedor de botones */
+.button {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 18px;               /* ⭐ Separación entre botones */
+    margin-top: 25px;
+}
+
+/* Ajustes generales de cada botón */
+.button button {
+    margin: 0;               /* Quita cualquier margen raro */
+    padding: 12px 25px;
+    font-size: 1rem;
+    border-radius: 22px;
+}
+
+/* Enlace dentro del botón */
+.button button a {
+    font-size: 1rem;
+}
+
+/* ⭐ Mejora para móviles */
+@media screen and (max-width:574px) {
+
+    .button {
+        gap: 20px;            /* Más separación en móvil */
+    }
+
+    .button button {
+        width: 80%;           /* ⭐ Botones más anchos y bonitos */
+        padding: 14px;
+        font-size: 1.1rem;
+    }
+
+    .button button a {
+        font-size: .9rem;     /* Ajuste suave de texto */
+    }
+}

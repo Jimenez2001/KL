@@ -258,7 +258,7 @@
 <div class="stars"></div>
 
 <h1>Juego de Memoria</h1>
-<div class="subtitle">Cada pareja revela un recuerdo, una fecha o algo especial ✨</div>
+<div class="subtitle">Encuentra los pares ✨</div>
 
 <!-- 🎵 MÚSICA -->
 <audio id="bgMusic" loop>
@@ -323,50 +323,77 @@ let matches = 0;
 const phrases = [
     "Tú eres una persona muy dedicada; entre trabajo, estudios y pendientes siempre encontraste la manera de seguir avanzando.",
     "Admiro la forma en que te esfuerzas por cumplir tus metas y no te conformas con lo fácil.",
-    "Te tomas en serio tus estudios, y se nota en cómo te preparas para parciales y proyectos.",
-    "Tu constancia en la U refleja la persona que eres: responsable, dedicada y capaz.",
-    "Tus logros, por pequeños que parezcan, son el resultado de todo el esfuerzo que no siempre se ve.",
-    "Tú eres de las personas que convierten sus estudios en oportunidades.",
+    "Espero y sigas sacando 10 en los parciales.",
+    "Espero un día escuchar que la administradora Kenely ya está graduada.",
+    "Espero que sigas disfrutando los días con clima raro como te gustan.",
 
-    "Te mereces un trabajo donde te valoren, porque haces mucho más de lo que te toca.",
-    "Tienes una ética de trabajo admirable; incluso en días difíciles das tu mejor versión.",
-    "Ese sueño de tener un mejor puesto no es lejano; tú tienes la capacidad para alcanzarlo.",
-    "Tu capacidad para adaptarte al trabajo es algo que pocas personas tienen.",
-    "Los cambios que quieres para tu vida laboral no son imposibles; vas en la dirección correcta.",
+    "Sabes que siempre estaré para tí, por si algún día necesitas algo.",
+    "Espero algún día ver la empresa KL sea una realidad.",
+    "Tu capacidad para adaptarte al trabajo es algo que pocas personas tienen, sigue siendo una persona resiliente.",
+    "Espero y no empieces tarde a cumplir tus sueños.",
 
-    "Tu marca y tu emprendimiento algún día serán reales; tú no te quedas solo en soñar.",
-    "Tu proyecto personal tiene algo especial: nace de tu disciplina, no del impulso.",
-    "Tienes una visión clara para tu emprendimiento, y eso ya es un paso enorme.",
-    "Me gusta cómo hablas de tus ideas; con calma, pero con determinación.",
-    "Lo que quieres construir como emprendedora encaja contigo y con tu manera de ser.",
+    "Espero y que el destino no te siga impidiendo ir al gym.",
+    "Cuídate mucho, eres muy importante para mí.",
 
-    "Tus sueños no son solo metas; son reflejo de tu carácter fuerte y constante.",
-    "Tú eres más capaz de lo que imaginas; solo necesitas seguir como vas.",
-    "Tus pasos, aunque sean pequeños, siempre te llevan hacia adelante.",
-    "Ojalá nunca dudes del futuro tan bueno que puedes construir para ti.",
-    "Tus metas grandes tienen sentido porque tú tienes la fuerza para lograrlas.",
+    "Toma mucha agua, duerme temprano (aunque eso ya lo haces) y siempre ten cuidado cuando salgas.",
+    "La playlist KL que te hice con la música que te gustaba, quiero que sepas que la escucho casi todos los días.",
 
-    "Tienes una manera tranquila de hablar que transmite paz, incluso cuando el día ha sido complicado.",
-    "Tu sinceridad hace que tus palabras se sientan reales.",
-    "Eres alguien que aporta, incluso sin proponérselo.",
-    "Me gusta cómo encuentras algo bueno en los días complicados.",
     "Se nota que valoras mucho a tu familia y a las personas importantes para ti.",
+    "Espero que algún día tu sueño de trabajar en la capital se te cumpla.",
+    "Esperemos que la manifestación del aumento algún día se cumpla.",
 
     "Me gustaba cuando contabas tu día en el trabajo o en la U; hacías todo sonar más ligero.",
     "Tus gustos, tu música y tus conversaciones hicieron varios días más agradables.",
     "Aprecio la confianza con la que me compartiste tus metas y parte de tu vida.",
     "Fue bonito coincidir contigo, aunque solo haya sido por un tramo pequeño.",
     "Me quedo con lo bueno, porque lo bueno contigo fue genuino.",
-    "Recordarte así, enfocada en tus metas y en tu futuro, es algo que siempre voy a valorar."
+    "Recordarte así, enfocada en tus metas y en tu futuro, es algo que siempre voy a valorar.",
+    "Eres más capaz de lo que te imaginas.",
+    "Gracias por confiar y compartir partes de tu vida conmigo.",
+  "Tus mensajes hicieron más ligeros muchos días.",
+  "Te mereces personas que te cuiden como tú cuidas a los demás.",
+  "Ojalá nunca dudes del futuro tan bonito que puedes construir.",
+  "Tienes una mezcla rara y bonita de fuerza y ternura.",
+  "De verdad deseo que encuentres gente que valore todo lo que eres.",
+  "Ojalá nunca olvides lo mucho que vales, aun en tus días cansados."
 ];
 
 const msg = document.getElementById("messageBox");
 
+/* ----------------------------------------------------------
+   Sistema de frases aleatorias SIN REPETIR
+---------------------------------------------------------- */
+
+function shuffle(array) {
+    let current = array.length, random;
+    while (current !== 0) {
+        random = Math.floor(Math.random() * current);
+        current--;
+        [array[current], array[random]] = [array[random], array[current]];
+    }
+    return array;
+}
+
+// Mezclamos las frases solo una vez
+let phraseQueue = shuffle([...phrases]);
+let phraseIndex = 0;
+
 function showPhrase() {
-    msg.innerHTML = phrases[Math.floor(Math.random() * phrases.length)];
+    // Si ya mostramos todas, volvemos a mezclar
+    if (phraseIndex >= phraseQueue.length) {
+        phraseQueue = shuffle([...phrases]);
+        phraseIndex = 0;
+    }
+
+    const text = phraseQueue[phraseIndex];
+    phraseIndex++;
+
+    msg.innerHTML = text;
     msg.classList.add("show");
+
     setTimeout(() => msg.classList.remove("show"), 4500);
 }
+
 
 /* ----------------------------------------------------------
    Crear las cartas
